@@ -110,16 +110,6 @@ public class QuerydslBasicTest {
 			.fetchFirst();
 	}
 
-	@Test
-	public void count() {
-		Long totalCount = queryFactory
-			//.select(Wildcard.count) //select count(*)
-			.select(member.count()) //select count(member.id)
-			.from(member)
-			.fetchOne();
-		System.out.println("totalCount = " + totalCount);
-	}
-
 	/**
 	 * 회원 정렬 순서
 	 * 1. 회원 나이 내림차순(desc)
@@ -144,5 +134,27 @@ public class QuerydslBasicTest {
 		assertThat(member5.getUsername()).isEqualTo("member5");
 		assertThat(member6.getUsername()).isEqualTo("member6");
 		assertThat(memberNull.getUsername()).isNull();
+	}
+
+	@Test
+	public void paging() {
+		List<Member> result = queryFactory
+			.selectFrom(member)
+			.orderBy(member.username.desc())
+			.offset(1)
+			.limit(2)
+			.fetch();
+
+		assertThat(result.size()).isEqualTo(2);
+	}
+	
+	@Test
+	public void count() {
+		Long totalCount = queryFactory
+			//.select(Wildcard.count) //select count(*)
+			.select(member.count()) //select count(member.id)
+			.from(member)
+			.fetchOne();
+		System.out.println("totalCount = " + totalCount);
 	}
 }
