@@ -3,6 +3,8 @@ package study.querydsl;
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -91,5 +93,30 @@ public class QuerydslBasicTest {
 			.fetchOne();
 
 		assertThat(findMember.getUsername()).isEqualTo("member1");
+	}
+
+	@Test
+	public void resultFetch() {
+		List<Member> fetch = queryFactory
+			.selectFrom(member)
+			.fetch();
+
+		Member fetchOne = queryFactory
+			.selectFrom(member)
+			.fetchOne();
+
+		Member fetchFirst = queryFactory
+			.selectFrom(member)
+			.fetchFirst();
+	}
+
+	@Test
+	public void count() {
+		Long totalCount = queryFactory
+			//.select(Wildcard.count) //select count(*)
+			.select(member.count()) //select count(member.id)
+			.from(member)
+			.fetchOne();
+		System.out.println("totalCount = " + totalCount);
 	}
 }
