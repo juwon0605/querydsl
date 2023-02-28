@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import study.querydsl.entity.Member;
@@ -422,6 +424,88 @@ public class QuerydslBasicTest {
 
 		for (String s : result) {
 			System.out.println("s = " + s);
+		}
+	}
+
+	/**
+	 * 다음과 같은 임의의 순서로 회원을 출력하고 싶다면?
+	 * 1. 0 ~ 30살이 아닌 회원을 가장 먼저 출력
+	 * 2. 0 ~ 20살 회원 출력
+	 * 3. 21 ~ 30살 회원 출력
+	 */
+	@Test
+	public void complexCaseWithOrderBy() {
+		NumberExpression<Integer> rankPath = new CaseBuilder()
+			.when(member.age.between(0, 20)).then(2)
+			.when(member.age.between(21, 30)).then(1)
+			.otherwise(3);
+
+		List<Tuple> result = queryFactory
+			.select(member.username, member.age, rankPath)
+			.from(member)
+			.orderBy(rankPath.desc())
+			.fetch();
+
+		for (Tuple tuple : result) {
+			String username = tuple.get(member.username);
+			Integer age = tuple.get(member.age);
+			Integer rank = tuple.get(rankPath);
+			System.out.println("username = " + username + " age = " + age + " rank = "
+				+ rank);
+		}
+	}
+
+	@Test
+	public void constant() {
+		List<Tuple> result = queryFactory
+			.select(member.username, Expressions.constant("A"))
+			.from(member)
+			.fetch();
+
+		for (Tuple tuple : result) {
+			System.out.println("tuple = " + tuple);
+		}
+	}
+
+	@Test
+	public void concat() {
+
+		//{username}_{age}
+		List<String> result = queryFactory
+			.select(member.username.concat("_").concat(member.age.stringValue()))
+			.from(member)
+			.where(member.username.eq("member1"))
+			.fetch();
+
+		for (String s : result) {
+			System.out.println("s = " + s);
+		}
+	}
+
+	@Test
+	public void simpleProjection() {
+		List<String> result = queryFactory
+			.select(member.username)
+			.from(member)
+			.fetch();
+
+		for (String s : result) {
+			System.out.println("s = " + s);
+		}
+	}
+
+	@Test
+	public void tupleProjection() {
+		List<Tuple> result = queryFactory
+			.select(member.username, member.age)
+			.from(member)
+			.fetch();
+
+		for (Tuple tuple : result) {
+			String username = tuple.get(member.username);
+			Integer age = tuple.get(member.age);
+			System.out.println("username = " + username);
+			System.out.println("age = " + age);
 		}
 	}
 }
